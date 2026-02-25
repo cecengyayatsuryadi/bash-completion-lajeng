@@ -64,6 +64,24 @@ cd bash-completion-lajeng
 ./test/run-tests.sh
 ```
 
+## Release Checklist
+
+```bash
+# 1) Syntax checks
+bash -n lajeng-completion.sh lajeng-spec.sh lajeng-config.sh install.sh uninstall.sh test/run-tests.sh
+
+# 2) Lint
+shellcheck lajeng-completion.sh lajeng-spec.sh lajeng-config.sh install.sh uninstall.sh test/run-tests.sh
+
+# 3) Regression tests
+./test/run-tests.sh
+
+# 4) Install/uninstall smoke test
+./install.sh
+source ~/.bashrc
+./uninstall.sh
+```
+
 ## Debug
 
 ```bash
@@ -73,5 +91,9 @@ lajeng_completion_debug
 
 ## Notes
 
-- Requires Bash 4.2+
+- Requires Bash 4.3+
 - Default command bound: `lajeng`
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
