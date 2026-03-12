@@ -13,24 +13,36 @@ fi
 
 tmp_file="$(mktemp)"
 awk -v source_line="$source_line" '
-  BEGIN { marker = "# lajeng completion"; pending_marker = 0 }
+  BEGIN { 
+    marker1 = "# lajeng completion"; 
+    marker2 = "# lajeng completion (zsh bridge)";
+    zsh_bridge = "autoload -U +X bashcompinit && bashcompinit";
+    pending = 0 
+  }
 
   {
-    if ($0 == marker) {
-      pending_marker = 1
+    if ($0 == marker1 || $0 == marker2) {
+      pending = $0
       next
     }
 
-    if (pending_marker) {
-      if ($0 == source_line) {
-        pending_marker = 0
+    if (pending) {
+      if ($0 == source_line || $0 == zsh_bridge) {
+        if ($0 == zsh_bridge) {
+          # skip the next line too if it is the source line
+          getline next_line
+          if (next_line != source_line) {
+            print next_line
+          }
+        }
+        pending = 0
         next
       }
-      print marker
-      pending_marker = 0
+      print pending
+      pending = 0
     }
 
-    if ($0 == source_line) {
+    if ($0 == source_line || $0 == zsh_bridge) {
       next
     }
 
@@ -38,8 +50,8 @@ awk -v source_line="$source_line" '
   }
 
   END {
-    if (pending_marker) {
-      print marker
+    if (pending) {
+      print pending
     }
   }
 ' "$rc_file" > "$tmp_file"

@@ -22,10 +22,25 @@ _lajeng_trim() {
   printf '%s' "$value"
 }
 
+_lajeng_eval_dynamic() {
+  local raw="$1"
+  # Check if value starts with $( and ends with )
+  if [[ "$raw" =~ ^\$\((.*)\)$ ]]; then
+    local cmd="${BASH_REMATCH[1]}"
+    _lajeng_debug "evaluating dynamic command: $cmd"
+    eval "$cmd" 2>/dev/null
+  else
+    printf '%s\n' "$raw"
+  fi
+}
+
 _lajeng_split_csv() {
   local raw="$1"
   local token
   local -a parsed_tokens=()
+
+  # Support dynamic evaluation before splitting
+  raw="$(_lajeng_eval_dynamic "$raw")"
 
   IFS=',' read -r -a parsed_tokens <<< "$raw"
   for token in "${parsed_tokens[@]}"; do
@@ -121,7 +136,7 @@ _lajeng_load_user_config() {
 _lajeng_values_for_flag() {
   local flag="$1"
   case "$flag" in
-    --env)
+    --env|-e)
       if [[ "${#_LAJENG_CFG_ENVIRONMENTS[@]}" -gt 0 ]]; then
         printf '%s\n' "${_LAJENG_CFG_ENVIRONMENTS[@]}"
       else
@@ -130,7 +145,7 @@ _lajeng_values_for_flag() {
         printf '%s\n' "${default_env[@]}"
       fi
       ;;
-    --profile)
+    --profile|-p)
       if [[ "${#_LAJENG_CFG_PROFILES[@]}" -gt 0 ]]; then
         printf '%s\n' "${_LAJENG_CFG_PROFILES[@]}"
       else
@@ -139,7 +154,7 @@ _lajeng_values_for_flag() {
         printf '%s\n' "${default_profiles[@]}"
       fi
       ;;
-    --namespace)
+    --namespace|-n)
       if [[ "${#_LAJENG_CFG_NAMESPACES[@]}" -gt 0 ]]; then
         printf '%s\n' "${_LAJENG_CFG_NAMESPACES[@]}"
       else
@@ -148,7 +163,7 @@ _lajeng_values_for_flag() {
         printf '%s\n' "${default_namespaces[@]}"
       fi
       ;;
-    --target)
+    --target|-t)
       local -a default_targets=()
       read -r -a default_targets <<< "${_LAJENG_DEFAULT_FLAG_VALUES[--target]}"
       printf '%s\n' "${default_targets[@]}"

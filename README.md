@@ -1,24 +1,26 @@
-# lajeng Bash Completion (MVP)
+# lajeng Bash Completion (Pro)
 
-Native Bash completion for a sample internal CLI named `lajeng`.
+Native Bash and Zsh completion for a sample internal CLI named `lajeng`.
 
 See architecture and flow visuals: [VISUAL.md](./VISUAL.md)
 
 ## Features
 
-- Subcommand suggestions
-- Context-aware flags per subcommand
-- Value suggestions for selected flags
-- Local config support with static fallback
-- Idempotent install/uninstall scripts
+- **Subcommand suggestions**: Auto-complete commands like `deploy`, `config`, etc.
+- **Context-aware flags**: Suggestions based on the current subcommand.
+- **Short Flag Support**: Quickly use aliases like `-e` (env), `-p` (profile), `-n` (ns), and `-t` (target).
+- **Smart Path Completion**: Seamlessly find files/folders using `-f` or `--file`.
+- **Dynamic Value Providers**: Evaluate shell commands in config (e.g., `ENVIRONMENTS=$(ls)`) for real-time suggestions.
+- **Cross-Shell Compatibility**: Works natively on **Bash** and **Zsh** (via automatic bridge).
+- **Local config support**: Customizable via `~/.config/lajeng/completion.conf`.
 
 ## File layout
 
-- `lajeng-completion.sh` main completion entrypoint
-- `lajeng-spec.sh` static CLI grammar
-- `lajeng-config.sh` local config loader and value providers
-- `install.sh` install into `~/.bashrc`
-- `uninstall.sh` remove from `~/.bashrc`
+- `lajeng-completion.sh`: Main logic and candidate generation.
+- `lajeng-spec.sh`: CLI grammar, flags, and static defaults.
+- `lajeng-config.sh`: Config loader with dynamic command evaluation support.
+- `install.sh`: Intelligent installer for `.bashrc` or `.zshrc`.
+- `uninstall.sh`: Clean removal from your shell configuration.
 
 ## Install
 
@@ -26,36 +28,18 @@ See architecture and flow visuals: [VISUAL.md](./VISUAL.md)
 cd bash-completion-lajeng
 chmod +x install.sh uninstall.sh test/run-tests.sh
 ./install.sh
-source ~/.bashrc
+# Restart your shell or source your rc file
 ```
 
-## Bind to your real command
+## Advanced Config: Dynamic Values
 
-Default binding is `lajeng`. To bind completion to your command (for example `niora`),
-set `LAJENG_COMPLETION_COMMANDS` before sourcing:
-
-```bash
-export LAJENG_COMPLETION_COMMANDS="niora"
-source /home/lilletboy/Desktop/Playground/bash-completion-lajeng/lajeng-completion.sh
-```
-
-You can bind multiple commands:
-
-```bash
-export LAJENG_COMPLETION_COMMANDS="niora lajeng"
-```
-
-## Optional local config
-
-Create `~/.config/lajeng/completion.conf`:
+You can make `lajeng` aware of your project structure by using subshells in `~/.config/lajeng/completion.conf`:
 
 ```ini
-ENVIRONMENTS=dev,staging,prod
-PROFILES=default,alpha,beta
-NAMESPACES=core,platform,data
+# Real-time environment discovery
+ENVIRONMENTS=$(ls -d environments/*/ | sed 's/\///g')
+PROFILES=default,admin,guest
 ```
-
-Unknown keys are ignored. Empty/missing config falls back to static defaults.
 
 ## Test
 
@@ -63,36 +47,6 @@ Unknown keys are ignored. Empty/missing config falls back to static defaults.
 cd bash-completion-lajeng
 ./test/run-tests.sh
 ```
-
-## Release Checklist
-
-```bash
-# 1) Syntax checks
-bash -n lajeng-completion.sh lajeng-spec.sh lajeng-config.sh install.sh uninstall.sh test/run-tests.sh
-
-# 2) Lint
-shellcheck lajeng-completion.sh lajeng-spec.sh lajeng-config.sh install.sh uninstall.sh test/run-tests.sh
-
-# 3) Regression tests
-./test/run-tests.sh
-
-# 4) Install/uninstall smoke test
-./install.sh
-source ~/.bashrc
-./uninstall.sh
-```
-
-## Debug
-
-```bash
-export LAJENG_COMPLETION_DEBUG=1
-lajeng_completion_debug
-```
-
-## Notes
-
-- Requires Bash 4.3+
-- Default command bound: `lajeng`
 
 ## License
 

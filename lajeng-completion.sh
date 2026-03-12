@@ -62,6 +62,12 @@ _lajeng_get_candidates() {
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
+  # If previous token is a path flag, suggest files/folders.
+  if _lajeng_spec_is_path_flag "$prev"; then
+    compgen -f -- "$cur"
+    return 0
+  fi
+
   # If previous token is a value flag, suggest values for that flag.
   if _lajeng_spec_is_value_flag "$prev"; then
     _lajeng_load_user_config

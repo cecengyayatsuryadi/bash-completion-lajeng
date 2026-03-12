@@ -18,5 +18,11 @@ if grep -Fqx "$source_line" "$rc_file"; then
   exit 0
 fi
 
-printf '\n# lajeng completion\n%s\n' "$source_line" >> "$rc_file"
+# Inject Zsh compatibility bridge if installing to .zshrc
+if [[ "$rc_file" == *".zshrc"* ]]; then
+  printf '\n# lajeng completion (zsh bridge)\nautoload -U +X bashcompinit && bashcompinit\n%s\n' "$source_line" >> "$rc_file"
+else
+  printf '\n# lajeng completion\n%s\n' "$source_line" >> "$rc_file"
+fi
+
 echo "installed lajeng completion to $rc_file"
